@@ -4,9 +4,13 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"os/signal"
 	"sso/internal/app"
 	"sso/internal/config"
 	"sso/internal/lib/logger/handlers/slogpretty"
+	"syscall"
+
+	_ "github.com/lib/pq"
 )
 
 const (
@@ -26,10 +30,18 @@ func main() {
 
 	log.Info("starting app", slog.String("env", cfg.Env))
 
-	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, cfg.TokenTTL)
+	application := app.New(log, cfg.GRPC.Port, []byte(cfg.Token.Secret), cfg.Token.Issuer, cfg.Token.TTL)
 
-	application.GRPCSrv.MustRun()
+	go application.GRPCSrv.MustRun()
 
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
+	sign := <-stop
+	log.Info("stopping application", slog.String("signal", sign.String()))
+
+	application.GRPCSrv.Stop()
+	log.Info("app stopped")
 }
 
 func setupLogger(env string) *slog.Logger {

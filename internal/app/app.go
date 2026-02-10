@@ -13,10 +13,11 @@ type App struct {
 func New(
 	log *slog.Logger,
 	grpcPort int,
-	storagePath string,
+	tokenSecret []byte,
+	issuer string,
 	tokenTTL time.Duration,
 ) *App {
-	grpcApp := grpcapp.New(log, grpcPort)
+	grpcApp := grpcapp.New(log, grpcPort, tokenSecret, issuer, tokenTTL)
 	return &App{
 		GRPCSrv: grpcApp,
 	}

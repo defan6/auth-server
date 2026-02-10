@@ -5,6 +5,13 @@ import (
 	"log/slog"
 	"net"
 	authgrpc "sso/internal/grpc/auth"
+	"sso/internal/lib/security/encoder"
+	"sso/internal/lib/security/token/generator"
+	"sso/internal/lib/security/token/signer"
+	"sso/internal/service"
+	"sso/internal/storage"
+	"sso/storage"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -18,10 +25,19 @@ type App struct {
 func New(
 	log *slog.Logger,
 	port int,
+	tokenSecret []byte,
+	issuer string,
+	tokenTTL time.Duration,
 ) *App {
-	gRPCServer := grpc.NewServer()
 
-	authgrpc.Register(gRPCServer)
+	database := db.NewDatabase()
+	storer := storage.NewStorage(database.GetDB(), log)
+	passwordEncoder := encoder.NewPasswordEncoder()
+	tokenSigner := signer.NewHMACSigner(tokenSecret)
+	tokenGenerator := generator.NewDefaultTokenGenerator(tokenSigner, issuer, tokenTTL)
+	authService := service.NewDefaultAuthService(log, storer, storer, passwordEncoder, tokenGenerator)
+	gRPCServer := grpc.NewServer()
+	authgrpc.Register(gRPCServer, authService)
 
 	return &App{
 		log:        log,
