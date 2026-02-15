@@ -23,3 +23,37 @@ func NewTokenGenerateResponse(token string) *TokenGenerateResponse {
 		Token: token,
 	}
 }
+
+type ListUserRequest struct {
+	Filters map[string]string
+}
+
+func NewListUserRequest(filters map[string]string) *ListUserRequest {
+	return &ListUserRequest{
+		Filters: filters,
+	}
+}
+
+type ListUserResponse struct {
+	Users []*UserResponse
+}
+
+func NewListUserResponse(users []*UserResponse) *ListUserResponse {
+	return &ListUserResponse{
+		Users: users,
+	}
+}
+
+type UserResponse struct {
+	ID    int64
+	Email string
+	Role  string
+}
+
+func NewUserResponse(id int64, email string, role string) *UserResponse {
+	return &UserResponse{
+		ID:    id,
+		Email: email,
+		Role:  role,
+	}
+}

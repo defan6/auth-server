@@ -32,7 +32,8 @@ func New(
 ) *App {
 
 	requiredRoles := map[string][]string{
-		"/auth.Auth/IsAdmin": {middleware.RoleAdmin},
+		"/auth.Auth/IsAdmin":  {middleware.RoleAdmin},
+		"auth.Auth/ListUsers": {middleware.RoleAdmin},
 	}
 
 	database := db.NewDatabase()
@@ -41,13 +42,14 @@ func New(
 	tokenSigner := signer.NewHMACSigner(tokenSecret)
 	tokenGenerator := generator.NewDefaultTokenGenerator(tokenSigner, issuer, tokenTTL)
 	authService := service.NewDefaultAuthService(log, storer, storer, passwordEncoder, tokenGenerator)
+	userService := service.NewDefaultUserService(log, storer)
 	gRPCServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			middleware.AuthInterceptor(tokenSigner),
 			middleware.RolesInterceptor(requiredRoles),
 		),
 	)
-	authgrpc.Register(gRPCServer, authService)
+	authgrpc.Register(gRPCServer, authService, userService)
 
 	return &App{
 		log:        log,

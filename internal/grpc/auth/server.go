@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"sso/internal/dto"
 
 	ssov1 "github.com/defan6/protos/gen/go/sso"
 	"google.golang.org/grpc"
@@ -14,16 +15,51 @@ type AuthService interface {
 	Register(ctx context.Context, email string, password string) (userID int64, err error)
 	IsAdmin(ctx context.Context, userID int64) (bool, error)
 }
+
+type UserService interface {
+	ListUsers(context.Context, *dto.ListUserRequest) (*dto.ListUserResponse, error)
+}
 type serverAPI struct {
 	ssov1.UnimplementedAuthServer
 	authService AuthService
+	userService UserService
 }
 
-func Register(gRPC *grpc.Server, authService AuthService) {
-	ssov1.RegisterAuthServer(gRPC, &serverAPI{authService: authService})
+func Register(gRPC *grpc.Server, authService AuthService, userService UserService) {
+	ssov1.RegisterAuthServer(gRPC, &serverAPI{authService: authService, userService: userService})
 }
 
-func (s *serverAPI) Login(ctx context.Context,
+func (s *serverAPI) ListUsers(
+	ctx context.Context,
+	req *ssov1.ListUserRequest,
+) (*ssov1.ListUserResponse, error) {
+
+	listUserRequest := dto.NewListUserRequest(req.GetFilters())
+	listUsersRes, err := s.userService.ListUsers(ctx, listUserRequest)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "internal server error")
+	}
+	response := mapToGRPCListUserResponse(listUsersRes)
+	return response, nil
+
+}
+
+func mapToGRPCListUserResponse(res *dto.ListUserResponse) *ssov1.ListUserResponse {
+	var list []*ssov1.User
+	for _, user := range res.Users {
+		userRes := &ssov1.User{
+			Id:    user.ID,
+			Email: user.Email,
+			Role:  user.Role,
+		}
+		list = append(list, userRes)
+	}
+
+	return &ssov1.ListUserResponse{Users: list}
+}
+
+func (s *serverAPI) Login(
+	ctx context.Context,
 	req *ssov1.LoginRequest,
 ) (*ssov1.LoginResponse, error) {
 	if err := validateLogin(req); err != nil {
@@ -39,7 +75,8 @@ func (s *serverAPI) Login(ctx context.Context,
 	}, nil
 }
 
-func (s *serverAPI) Register(ctx context.Context,
+func (s *serverAPI) Register(
+	ctx context.Context,
 	req *ssov1.RegisterRequest,
 ) (*ssov1.RegisterResponse, error) {
 	if err := validateRegister(req); err != nil {
@@ -53,7 +90,8 @@ func (s *serverAPI) Register(ctx context.Context,
 	return &ssov1.RegisterResponse{UserId: userID}, nil
 }
 
-func (s *serverAPI) IsAdmin(ctx context.Context,
+func (s *serverAPI) IsAdmin(
+	ctx context.Context,
 	req *ssov1.IsAdminRequest,
 ) (*ssov1.IsAdminResponse, error) {
 	if err := validateIsAdmin(req); err != nil {

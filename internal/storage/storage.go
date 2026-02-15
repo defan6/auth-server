@@ -3,8 +3,10 @@ package storage
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"sso/internal/domain"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -92,4 +94,27 @@ func (s *Storage) SaveUser(
 		return domain.User{}, err
 	}
 	return savedUser, nil
+}
+
+func (s *Storage) GetListUsers(ctx context.Context, filters map[string]string) ([]domain.User, error) {
+	var users []domain.User
+
+	query := "SELECT id, email, role FROM users"
+	args := []interface{}{}
+	where := []string{}
+	i := 1
+	for field, value := range filters {
+		where = append(where, fmt.Sprintf("%s = $%d", field, i))
+		args = append(args, value)
+		i++
+	}
+
+	if len(where) > 0 {
+		query += " WHERE " + strings.Join(where, " AND ")
+	}
+	err := s.db.SelectContext(ctx, &users, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
