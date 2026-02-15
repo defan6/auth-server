@@ -9,10 +9,12 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 var (
-	UserNotFoundErr = errors.New("User not found")
+	ErrUserNotFound       = errors.New("User not found")
+	ErrEmailAlreadyExists = errors.New("Email already exists")
 )
 
 var (
@@ -50,7 +52,7 @@ func (s *Storage) FindUserByEmail(
 	user := domain.User{}
 	err := s.db.GetContext(ctx, &user, queryFindByEmail, email)
 	if err != nil {
-		return domain.User{}, UserNotFoundErr
+		return domain.User{}, ErrUserNotFound
 	}
 	return user, nil
 }
@@ -74,7 +76,7 @@ func (s *Storage) FindUserByID(
 	user := domain.User{}
 	err := s.db.GetContext(ctx, &user, queryFindById, userID)
 	if err != nil {
-		return domain.User{}, UserNotFoundErr
+		return domain.User{}, ErrUserNotFound
 	}
 	return user, nil
 }
@@ -91,6 +93,9 @@ func (s *Storage) SaveUser(
 		user.Role).
 		StructScan(&savedUser)
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			return domain.User{}, ErrEmailAlreadyExists
+		}
 		return domain.User{}, err
 	}
 	return savedUser, nil

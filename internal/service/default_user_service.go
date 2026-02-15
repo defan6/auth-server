@@ -10,7 +10,7 @@ import (
 
 var ErrInvalidFilters = errors.New("invalid filters")
 
-type DefaultUserService struct {
+type defaultUserService struct {
 	log    *slog.Logger
 	storer UserStorer
 }
@@ -19,14 +19,14 @@ type UserStorer interface {
 	GetListUsers(ctx context.Context, filters map[string]string) ([]domain.User, error)
 }
 
-func NewDefaultUserService(log *slog.Logger, userStorer UserStorer) *DefaultUserService {
-	return &DefaultUserService{
+func NewDefaultUserService(log *slog.Logger, userStorer UserStorer) *defaultUserService {
+	return &defaultUserService{
 		log:    log,
 		storer: userStorer,
 	}
 }
 
-func (s *DefaultUserService) ListUsers(ctx context.Context, request *dto.ListUserRequest) (*dto.ListUserResponse, error) {
+func (s *defaultUserService) ListUsers(ctx context.Context, request *dto.ListUserRequest) (*dto.ListUserResponse, error) {
 	filters, err := getFilters(request)
 	if err != nil {
 		return nil, err

@@ -111,7 +111,7 @@ func (a *DefaultAuthService) Login(
 	appID int,
 ) (token string, err error) {
 	findUserRes, err := a.userFinder.FindUserByEmail(ctx, email)
-	if err != nil && errors.Is(err, storage.UserNotFoundErr) {
+	if err != nil && errors.Is(err, storage.ErrUserNotFound) {
 		return "", InvalidCredentialsErr
 	}
 	if err != nil {
