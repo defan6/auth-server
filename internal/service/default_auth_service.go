@@ -7,18 +7,17 @@ import (
 	"log/slog"
 	"sso/internal/domain"
 	"sso/internal/dto"
-	"sso/internal/grpc/auth"
 	"sso/internal/storage"
 	"strconv"
 )
 
 var (
-	InvalidCredentialsErr = errors.New("invalid credentials")
-	UserAlreadyExistsErr  = errors.New("user already exists")
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrEmailAlreadyExists = errors.New("email already exists")
 	ErrUserNotFound       = errors.New("user not found")
 )
 
-type DefaultAuthService struct {
+type defaultAuthService struct {
 	log             *slog.Logger
 	userSaver       UserSaver
 	userFinder      UserFinder
@@ -31,8 +30,8 @@ func NewDefaultAuthService(log *slog.Logger,
 	userFinder UserFinder,
 	passwordEncoder PasswordEncoder,
 	tokenGenerator TokenGenerator,
-) auth.AuthService {
-	return &DefaultAuthService{
+) *defaultAuthService {
+	return &defaultAuthService{
 		log:             log,
 		userSaver:       userSaver,
 		userFinder:      userFinder,
@@ -64,7 +63,7 @@ type PasswordEncoder interface {
 	ComparePassword(password, hash string) (bool, error)
 }
 
-func (a *DefaultAuthService) Register(
+func (a *defaultAuthService) Register(
 	ctx context.Context,
 	email string,
 	password string,
@@ -74,7 +73,7 @@ func (a *DefaultAuthService) Register(
 		return 0, fmt.Errorf("Error checking if user exists: %w", err)
 	}
 	if exists {
-		return 0, UserAlreadyExistsErr
+		return 0, ErrEmailAlreadyExists
 	}
 
 	passwordHash, err := a.passwordEncoder.EncodePassword(password)
@@ -94,7 +93,7 @@ func (a *DefaultAuthService) Register(
 	return savedUser.ID, nil
 }
 
-func (a *DefaultAuthService) IsAdmin(
+func (a *defaultAuthService) IsAdmin(
 	ctx context.Context,
 	userID int64,
 ) (bool, error) {
@@ -105,7 +104,7 @@ func (a *DefaultAuthService) IsAdmin(
 	return res.Role == domain.RoleAdmin, nil
 }
 
-func (a *DefaultAuthService) Login(
+func (a *defaultAuthService) Login(
 	ctx context.Context,
 	email string,
 	password string,
@@ -113,7 +112,7 @@ func (a *DefaultAuthService) Login(
 ) (token string, err error) {
 	findUserRes, err := a.userFinder.FindUserByEmail(ctx, email)
 	if err != nil && errors.Is(err, storage.ErrUserNotFound) {
-		return "", InvalidCredentialsErr
+		return "", ErrInvalidCredentials
 	}
 	if err != nil {
 		return "", fmt.Errorf("error finding user by email: %w", err)
@@ -121,7 +120,7 @@ func (a *DefaultAuthService) Login(
 
 	isValidPassword, err := a.passwordEncoder.ComparePassword(password, findUserRes.PasswordHash)
 	if err != nil || !isValidPassword {
-		return "", InvalidCredentialsErr
+		return "", ErrInvalidCredentials
 	}
 	details := domain.NewUserDetails(findUserRes.ID, findUserRes.Email, findUserRes.Role)
 	genTokenRes, err := a.tokenGenerator.GenerateToken(ctx, details, strconv.Itoa(appID))
