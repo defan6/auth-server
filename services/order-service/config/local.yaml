@@ -1,0 +1,9 @@
+env: local
+server:
+  host: localhost
+  port: 8090
+  read_timeout: 10s
+  write_timeout: 10s
+  idle_timeout: 60s
+logging:
+  level: debug

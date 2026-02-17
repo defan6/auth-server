@@ -5,10 +5,10 @@ import (
 	"errors"
 	"regexp"
 	"sso/internal/domain"
-	"sso/internal/lib/logger/handlers/slogdiscard"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/defan6/market/services/shared/logger/handlers/slogdiscard"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"

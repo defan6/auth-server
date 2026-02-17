@@ -4,13 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"os/signal"
-	"sso/internal/app"
-	"sso/internal/config"
-	"syscall"
 
+	"github.com/defan6/market/services/order-service/internal/config"
 	"github.com/defan6/market/services/shared/logger/handlers/slogpretty"
-	_ "github.com/lib/pq"
 )
 
 const (
@@ -19,29 +15,18 @@ const (
 	envProd  = "prod"
 )
 
-// TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.</p>
 func main() {
-
+	// load config
 	cfg := config.MustLoad()
 	fmt.Println(cfg)
-
+	// setup logger
 	log := setupLogger(cfg.Env)
 
-	log.Info("starting app", slog.String("env", cfg.Env))
+	// setup app
 
-	application := app.New(log, cfg.GRPC.Port, []byte(cfg.Token.Secret), cfg.Token.Issuer, cfg.Token.TTL)
+	// run app
 
-	go application.GRPCSrv.MustRun()
-
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
-
-	sign := <-stop
-	log.Info("stopping application", slog.String("signal", sign.String()))
-
-	application.GRPCSrv.Stop()
-	log.Info("app stopped")
+	// graceful shutdown
 }
 
 func setupLogger(env string) *slog.Logger {
@@ -60,7 +45,7 @@ func setupLogger(env string) *slog.Logger {
 
 func setupPrettySlog() *slog.Logger {
 	opts := slogpretty.PrettyHandlerOptions{
-		SlogOptions: &slog.HandlerOptions{Level: slog.LevelDebug},
+		SlogOptions: &slog.HandlerOptions{Level: slog.LevelDebug}
 	}
 
 	handler := opts.NewPrettyHandler(os.Stdout)

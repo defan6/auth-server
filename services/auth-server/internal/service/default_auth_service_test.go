@@ -5,10 +5,10 @@ import (
 	"errors"
 	"sso/internal/domain"
 	"sso/internal/dto"
-	"sso/internal/lib/logger/handlers/slogdiscard"
 	"sso/internal/service/mocks"
 	"testing"
 
+	"github.com/defan6/market/services/shared/logger/handlers/slogdiscard"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
