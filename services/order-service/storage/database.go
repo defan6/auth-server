@@ -1,10 +1,10 @@
-package db
+package storage
 
 import (
 	"fmt"
 
+	"github.com/defan6/market/services/order-service/internal/config"
 	"github.com/jmoiron/sqlx"
-	"sso/internal/config"
 )
 
 type Database struct {

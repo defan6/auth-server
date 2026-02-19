@@ -49,7 +49,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		postgres.WithUsername("postgres"),
 		postgres.WithPassword("postgres"),
 		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
+			wait.ForLog("storage system is ready to accept connections").
 				WithOccurrence(2).
 				WithStartupTimeout(5*time.Second),
 		),

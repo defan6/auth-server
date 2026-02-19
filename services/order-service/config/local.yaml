@@ -5,5 +5,12 @@ server:
   read_timeout: 10s
   write_timeout: 10s
   idle_timeout: 60s
+db:
+  host: localhost
+  port: 5433
+  name: orders
+  user: postgres
+  password: postgres
+  sslmode: disable
 logging:
   level: debug

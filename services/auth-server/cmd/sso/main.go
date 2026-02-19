@@ -30,7 +30,7 @@ func main() {
 
 	log.Info("starting app", slog.String("env", cfg.Env))
 
-	application := app.New(log, cfg.GRPC.Port, []byte(cfg.Token.Secret), cfg.Token.Issuer, cfg.Token.TTL)
+	application := app.New(log, cfg.GRPC.Port, []byte(cfg.Token.Secret), cfg.Token.Issuer, cfg.Token.TTL, &cfg.DB)
 
 	go application.GRPCSrv.MustRun()
 

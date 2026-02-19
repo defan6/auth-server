@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"sso/internal/config"
 	authgrpc "sso/internal/grpc/auth"
 	"sso/internal/grpc/auth/middleware"
 	"sso/internal/lib/security/encoder"
@@ -29,6 +30,7 @@ func New(
 	tokenSecret []byte,
 	issuer string,
 	tokenTTL time.Duration,
+	dbConfig *config.DBConfig,
 ) *App {
 
 	requiredRoles := map[string][]string{
@@ -36,7 +38,7 @@ func New(
 		"auth.Auth/ListUsers": {middleware.RoleAdmin},
 	}
 
-	database := db.NewDatabase()
+	database := db.NewDatabase(dbConfig)
 	storer := storage.NewStorage(database.GetDB(), log)
 	passwordEncoder := encoder.NewPasswordEncoder()
 	tokenSigner := signer.NewHMACSigner(tokenSecret)

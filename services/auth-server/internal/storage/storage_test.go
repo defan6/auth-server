@@ -77,9 +77,9 @@ func TestStorage_Register(t *testing.T) {
 		assert.ErrorContains(t, err, "Email already exists")
 	})
 
-	t.Run("failed - database connection lost", func(t *testing.T) {
+	t.Run("failed - storage connection lost", func(t *testing.T) {
 
-		dbErr := errors.New("database connection lost")
+		dbErr := errors.New("storage connection lost")
 
 		mock.ExpectQuery(regexp.QuoteMeta(queryInsertUser)).
 			WithArgs(testEmail, testPassHash, testRole).
@@ -94,6 +94,6 @@ func TestStorage_Register(t *testing.T) {
 		savedUser, err := s.SaveUser(ctx, userToSave)
 		require.Error(t, err)
 		assert.Empty(t, savedUser)
-		assert.ErrorContains(t, err, "database connection lost")
+		assert.ErrorContains(t, err, "storage connection lost")
 	})
 }

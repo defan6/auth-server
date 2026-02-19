@@ -11,6 +11,7 @@ import (
 type Config struct {
 	Env     string        `yaml:"env" env-default:"local"`
 	Server  HttpConfig    `yaml:"server"`
+	DB      DBConfig      `yaml:"db"`
 	Logging LoggingConfig `yaml:"logging"`
 }
 
@@ -20,6 +21,15 @@ type HttpConfig struct {
 	ReadTimeout  time.Duration `yaml:"read_timeout" env-default:"10s"`
 	WriteTimeout time.Duration `yaml:"write_timeout" env-default:"10s"`
 	IdleTimeout  time.Duration `yaml:"idle_timeout" env-default:"60s"`
+}
+
+type DBConfig struct {
+	Host     string `yaml:"host" env-default:"localhost"`
+	Port     int    `yaml:"port" env-default:"5432"`
+	Name     string `yaml:"name" env-default:"orders"`
+	User     string `yaml:"user" env-default:"postgres"`
+	Password string `yaml:"password" env-default:"postgres"`
+	SSLMode  string `yaml:"sslmode" env-default:"disable"`
 }
 
 type LoggingConfig struct {

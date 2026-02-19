@@ -3,6 +3,7 @@ package app
 import (
 	"log/slog"
 	grpcapp "sso/internal/app/grpc"
+	"sso/internal/config"
 	"time"
 )
 
@@ -16,8 +17,9 @@ func New(
 	tokenSecret []byte,
 	issuer string,
 	tokenTTL time.Duration,
+	dbConfig *config.DBConfig,
 ) *App {
-	grpcApp := grpcapp.New(log, grpcPort, tokenSecret, issuer, tokenTTL)
+	grpcApp := grpcapp.New(log, grpcPort, tokenSecret, issuer, tokenTTL, dbConfig)
 	return &App{
 		GRPCSrv: grpcApp,
 	}
